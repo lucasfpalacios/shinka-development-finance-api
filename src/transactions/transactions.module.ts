@@ -1,0 +1,14 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Transaction } from './transactions.entity';
+import { TransactionsController } from './transactions.controller';
+import { TransactionsService } from './transactions.service';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([Transaction])],
+  controllers: [TransactionsController],
+  providers: [TransactionsService],
+  // Lo usan BudgetsModule (para calcular lo gastado) y BotModule
+  exports: [TransactionsService],
+})
+export class TransactionsModule {}

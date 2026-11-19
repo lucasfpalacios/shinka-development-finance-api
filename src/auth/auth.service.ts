@@ -61,6 +61,11 @@ export class AuthService {
   }
 
   async googleLogin(googleUser: GoogleUser): Promise<AuthResult> {
+    // Sin email no podemos identificar ni vincular la cuenta
+    if (!googleUser.email) {
+      throw new UnauthorizedException('Google no devolvió un email');
+    }
+
     let user = await this.users.findByGoogleId(googleUser.googleId);
 
     if (!user) {

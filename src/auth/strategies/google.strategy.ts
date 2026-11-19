@@ -14,9 +14,14 @@ interface GoogleUser {
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(config: ConfigService) {
     super({
-      clientID: config.get<string>('GOOGLE_CLIENT_ID') ?? '',
-      clientSecret: config.get<string>('GOOGLE_CLIENT_SECRET') ?? '',
-      callbackURL: config.get<string>('GOOGLE_CALLBACK_URL') ?? '',
+      // Si no está configurado usamos un placeholder para que la app arranque igual;
+      // GoogleAuthGuard bloquea el login con Google en ese caso.
+      clientID: config.get<string>('GOOGLE_CLIENT_ID') || 'not-configured',
+      clientSecret:
+        config.get<string>('GOOGLE_CLIENT_SECRET') || 'not-configured',
+      callbackURL:
+        config.get<string>('GOOGLE_CALLBACK_URL') ||
+        'http://localhost:3001/auth/google/callback',
       scope: ['email', 'profile'],
     });
   }
@@ -28,7 +33,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   ): GoogleUser {
     return {
       googleId: profile.id,
-      email: profile.emails?.[0].value ?? '',
+      email: profile.emails?.[0]?.value?.toLowerCase() ?? '',
       name: profile.displayName,
       avatar: profile.photos?.[0]?.value,
     };

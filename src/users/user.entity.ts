@@ -42,6 +42,15 @@ export class User {
   @Column({ nullable: true, unique: true })
   telegramId: string; // ej: "123456789"
 
+  // Código temporal de 6 dígitos para vincular WhatsApp/Telegram.
+  // El usuario lo pide desde la app y se lo manda al bot: así probamos
+  // que el número es suyo (si no, cualquiera podría "reclamar" el número de otro).
+  @Column({ type: 'varchar', length: 6, nullable: true, select: false })
+  linkCode: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true, select: false })
+  linkCodeExpiresAt: Date | null;
+
   @Column({ default: 'ARS' })
   currency: string; // moneda por defecto
 

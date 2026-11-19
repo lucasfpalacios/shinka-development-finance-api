@@ -1,0 +1,12 @@
+import { IsIn, IsOptional, IsString, Length } from 'class-validator';
+
+export class UpdateProfileDto {
+  @IsOptional()
+  @IsString()
+  @Length(1, 100)
+  name?: string;
+
+  @IsOptional()
+  @IsIn(['ARS', 'USD', 'EUR'])
+  currency?: string;
+}

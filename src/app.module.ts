@@ -1,35 +1,40 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
+import { validateEnv } from './config/env.validation';
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { TransactionsModule } from './transactions/transactions.module';
+import { BudgetsModule } from './budgets/budgets.module';
+import { BotModule } from './bot/bot.module';
 
 @Module({
   imports: [
-    // 1. ConfigModule: permite leer el archivo .env en toda la app
-    // isGlobal: true significa que no tenés que importarlo en cada módulo
-    ConfigModule.forRoot({ isGlobal: true }),
-    // 2. TypeOrmModule: conecta la app a PostgreSQL
-    // forRootAsync significa que espera a que ConfigModule cargue el .env antes de conectar
+    // Lee el .env y valida que estén todas las variables necesarias
+    ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres', // tipo de base de datos
-        host: config.get('DB_HOST'), // lee DB_HOST del .env
-        port: config.get<number>('DB_PORT'),
-        username: config.get('DB_USER'),
-        password: config.get('DB_PASSWORD'),
-        database: config.get('DB_NAME'),
-        // Le dice a TypeORM que busque todos los archivos .entity.ts
-        // para saber qué tablas crear en la base de datos
-        entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        // synchronize: true → TypeORM crea/modifica las tablas automáticamente
-        // según tus entidades. Solo usar en desarrollo, nunca en producción
-        synchronize: true,
-      }),
       inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get<string>('DB_HOST'),
+        port: Number(config.get<string>('DB_PORT')),
+        username: config.get<string>('DB_USER'),
+        password: config.get<string>('DB_PASSWORD'),
+        database: config.get<string>('DB_NAME'),
+        // Carga las entidades registradas con TypeOrmModule.forFeature()
+        autoLoadEntities: true,
+        // synchronize crea/modifica tablas solo. Puede BORRAR columnas y datos,
+        // por eso hay que activarlo explícitamente (DB_SYNC=true) y solo en desarrollo.
+        synchronize: config.get<string>('DB_SYNC') === 'true',
+      }),
     }),
+    UsersModule,
+    AuthModule,
+    TransactionsModule,
+    BudgetsModule,
+    BotModule,
   ],
   controllers: [AppController],
   providers: [AppService],

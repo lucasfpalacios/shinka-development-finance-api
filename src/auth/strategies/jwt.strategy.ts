@@ -12,12 +12,13 @@ interface JwtPayload {
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(config: ConfigService) {
-    // config.get<string>('JWT_SECRET') le dice a TypeScript que SIEMPRE es string
-    // El ?? '' es un fallback por si no existe (nunca debería pasar si el .env está bien)
-    const secret = config.get<string>('JWT_SECRET') ?? '';
+    // getOrThrow: si JWT_SECRET no existe la app no arranca
+    // (además env.validation.ts exige que tenga al menos 32 caracteres)
+    const secret = config.getOrThrow<string>('JWT_SECRET');
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
       secretOrKey: secret,
     });
   }

@@ -1,0 +1,29 @@
+# Postgres local. Usa los datos de conexión del .env
+#   docker compose up -d db        → base de desarrollo (puerto DB_PORT, datos persistentes).
+#                                    Opcional: solo si no tenés Postgres instalado en la máquina.
+#   docker compose up -d db-test   → base descartable para `npm run test:e2e` (puerto 5440)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - '127.0.0.1:${DB_PORT:-5432}:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  db-test:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: katana_test
+    ports:
+      - '127.0.0.1:5440:5432'
+    tmpfs:
+      - /var/lib/postgresql/data
+
+volumes:
+  pgdata:
